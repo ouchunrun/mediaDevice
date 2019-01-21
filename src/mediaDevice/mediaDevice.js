@@ -105,7 +105,7 @@ class MediaDevice {
    *  @param  device  检查的设备
    *  @returns  {number}  不存在：-1，  存在：非-1
    */
-  indexOfArray (deviceArray, device) {
+  static indexOfArray (deviceArray, device) {
     let index = -1
     if (deviceArray) {
       for (let i = 0; i < deviceArray.length; i++) {
@@ -127,10 +127,10 @@ class MediaDevice {
    *  @param  devices  所有设备
    *  @returns  {Array}  不重复的设备数组
    */
-  deleteDeduplicateDevice (devices) {
+  static deleteDeduplicateDevice (devices) {
     let deviceArr = []
     for (let i = 0; i < devices.length; i++) {
-      if (MediaDevice.prototype.indexOfArray(deviceArr, devices[i]) < 0) {
+      if (MediaDevice.indexOfArray(deviceArr, devices[i]) < 0) {
         deviceArr.push(devices[i])
       }
     }
@@ -199,7 +199,7 @@ class MediaDevice {
         default:
           console.log('Some other kind of source/device plug in: ', device)
       }
-      index = MediaDevice.prototype.indexOfArray(deviceArray, device)
+      index = MediaDevice.indexOfArray(deviceArray, device)
       if (index >= 0) {
         deviceArray[index].state = 'available'
         console.log('change device state to available')
@@ -230,8 +230,8 @@ class MediaDevice {
       return
     }
     oldDevicesArray.forEach(function (deviceItem) {
-      let index = MediaDevice.prototype.indexOfArray(newDevicesArray, deviceItem)
-      let usingIndex = MediaDevice.prototype.indexOfArray(usingDevices, deviceItem)
+      let index = MediaDevice.indexOfArray(newDevicesArray, deviceItem)
+      let usingIndex = MediaDevice.indexOfArray(usingDevices, deviceItem)
       if (index < 0) {
         deviceItem.state = 'unavailable'
         console.warn(deviceItem.label + '(' + deviceItem.deviceId + ') has been plug out! (' + deviceItem.kind + ')')
@@ -273,8 +273,8 @@ class MediaDevice {
    *  成功获取设备列表
    *  @param  devices  获取的设备列表
    */
-  gotDevicesSuccess (devices) {
-    let newDevicesArray = MediaDevice.prototype.deleteDeduplicateDevice(devices)
+  static gotDevicesSuccess (devices) {
+    let newDevicesArray = MediaDevice.deleteDeduplicateDevice(devices)
     let oldDevicesArray = MediaDevice.getMediaDeviceFromStorage()
     let result = newDevicesArray.length - oldDevicesArray.length
     if (result >= 0) {
@@ -289,7 +289,7 @@ class MediaDevice {
    *  获取设备失败回调
    *  @param  error
    */
-  errorCallback (error) {
+  static errorCallback (error) {
     console.error('enumerateDevices error!')
     console.error(error)
   }
@@ -301,11 +301,11 @@ class MediaDevice {
     try {
       if ((navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) || adapter.browserDetails.isWebRTCPluginInstalled === true) {
         navigator.mediaDevices.enumerateDevices()
-          .then(MediaDevice.prototype.gotDevicesSuccess)
-          .catch(MediaDevice.prototype.errorCallback)
+          .then(MediaDevice.gotDevicesSuccess)
+          .catch(MediaDevice.errorCallback)
       }
     } catch (e) {
-      MediaDevice.prototype.errorCallback(e)
+      MediaDevice.errorCallback(e)
     }
   }
 
@@ -346,13 +346,17 @@ class MediaDevice {
       localVideoTrack = window.stream.getVideoTracks()[0]
     }
     if (localVideoTrack && localVideoTrack.applyConstraints) {
-      this.applyConstraints(resolutionInfo)
+      this.applyNewConstraints(resolutionInfo)
     } else {
       this.gum(resolutionInfo, deviceInfo)
     }
   }
 
-  applyConstraints (resolutionInfo) {
+  /***
+   * 使用applyConstraints设置流的分辨率
+   * @param resolutionInfo
+   */
+  applyNewConstraints (resolutionInfo) {
     let localVideoTrack = window.stream.getVideoTracks()[0]
     let constraintForApply = {
       frameRate: { max: 30 },
@@ -367,15 +371,20 @@ class MediaDevice {
     }
     localVideoTrack.applyConstraints(constraintForApply).then(function () {
       console.log('applyConstraints success')
-      MediaDevice.prototype.captureResults('pass')
+      MediaDevice.captureResults('pass')
     }).catch(function (error) {
       console.warn('applyConstraints error: ', error.name)
       if (scanning) {
-        MediaDevice.prototype.captureResults('fail: ' + error.name)
+        MediaDevice.captureResults('fail: ' + error.name)
       }
     })
   }
 
+  /***
+   * 重新取流
+   * @param resolutionInfo
+   * @param deviceInfo
+   */
   gum (resolutionInfo, deviceInfo) {
     // Kill any running streams;
     if (stream) {
@@ -409,7 +418,7 @@ class MediaDevice {
     function errorCallback (error) {
       console.log('getUserMedia error!', error.name)
       if (scanning) {
-        MediaDevice.prototype.captureResults('fail: ' + error.name)
+        MediaDevice.captureResults('fail: ' + error.name)
       }
     }
     setTimeout(() => {
@@ -418,13 +427,13 @@ class MediaDevice {
         .catch(errorCallback)
     }, (stream ? 200 : 0)) // official examples had MediaDevice.prototype at 200
 
-    video.onloadedmetadata = MediaDevice.prototype.displayVideoDimensions
+    video.onloadedmetadata = MediaDevice.displayVideoDimensions
   }
 
   /***
    *  显示获取的视频流尺寸
    */
-  displayVideoDimensions () {
+  static displayVideoDimensions () {
     if (scanning) {
       // MediaDevice.prototype should only happen during setup
       if (scanList === undefined) {
@@ -432,13 +441,13 @@ class MediaDevice {
       }
       // Wait for dimensions if they don't show right away
       if (!video.videoWidth) {
-        setTimeout(MediaDevice.prototype.displayVideoDimensions, 500) // was 500
+        setTimeout(MediaDevice.displayVideoDimensions, 500) // was 500
       }
       if (video.videoWidth * video.videoHeight > 0) {
         if (scanList[index].width + 'x' + scanList[index].height !== video.videoWidth + 'x' + video.videoHeight) {
-          MediaDevice.prototype.captureResults('fail: mismatch')
+          MediaDevice.captureResults('fail: mismatch')
         } else {
-          MediaDevice.prototype.captureResults('pass')
+          MediaDevice.captureResults('pass')
         }
       }
     }
@@ -448,12 +457,12 @@ class MediaDevice {
    *  保存扫描结果
    *  @param  status
    */
-  captureResults (status) {
+  static captureResults (status) {
     console.log(scanList[index].label + ' Actual res ' + video.videoWidth + 'x' + video.videoHeight)
     if (!scanning) { // exit if scan is not active
       return
     }
-    MediaDevice.prototype.resolutionDisplayTable(scanList, status)
+    MediaDevice.resolutionDisplayTable(scanList, status)
     let cameraResolution = {}
     cameraResolution.label = cameraScanList[camNum].label
     cameraResolution.ResName = scanList[index].label
@@ -480,7 +489,7 @@ class MediaDevice {
       scanning = false
       MediaDevice.setMediaDeviceToStorage()
       console.warn('finish up, stop stream')
-      video.removeEventListener('onloadedmetadata', MediaDevice.prototype.displayVideoDimensions) // turn off the event handler
+      video.removeEventListener('onloadedmetadata', MediaDevice.displayVideoDimensions) // turn off the event handler
     }
     // set device resolution when any one of camera finish scan
     if (index === scanList.length - 1) {
@@ -507,7 +516,7 @@ class MediaDevice {
    *  @param scanList
    *  @param  status  扫描结果
    */
-  resolutionDisplayTable (scanList, status) {
+  static resolutionDisplayTable (scanList, status) {
     scanList[index].status = status
     scanList[index].streamWidth = video.videoWidth
     scanList[index].streamHeight = video.videoHeight
@@ -553,7 +562,7 @@ MediaDevice.prototype.setDeviceState = function (isApply, data) {
       return
     }
     deviceArray.forEach(function (device) {
-      let index = MediaDevice.prototype.indexOfArray(usingDevices, device)
+      let index = MediaDevice.indexOfArray(usingDevices, device)
       if (device.deviceId === nowUseDevice.deviceId && device.label === nowUseDevice.label) {
         if (index >= 0) {
           usingDevices[index].state = 'apply'
@@ -570,6 +579,15 @@ MediaDevice.prototype.setDeviceState = function (isApply, data) {
       }
     })
   }
+}
+
+/***
+ * 获取设备列表
+ * @returns {*[]}
+ */
+MediaDevice.prototype.getMediaDevice = function () {
+  let devices = audioInputDevices.concat(audioOutputDevices.concat(videoInputDevices))
+  return devices
 }
 
 /**
@@ -604,25 +622,15 @@ MediaDevice.prototype.deviceCheckInterval = function (setOrClear) {
   }
 }
 
-// /***
-//  *  设备热拔插监听函数
-//  *  @param  event  事件参数
-//  */
-// navigator.mediaDevices.ondevicechange = function (event) {
-//   MediaDevice.prototype.getMediaDeviceList()
-// }
-
 /***
- * 获取设备列表
- * @returns {*[]}
+ *  设备热拔插监听函数
+ *  @param  event  事件参数
  */
-MediaDevice.prototype.getMediaDevice = function () {
-  let devices = audioInputDevices.concat(audioOutputDevices.concat(videoInputDevices))
-  return devices
+navigator.mediaDevices.ondevicechange = function (event) {
+  MediaDevice.prototype.getMediaDeviceList()
 }
 
 /***
  * 设备热拔插定时检查器
  */
 MediaDevice.prototype.deviceCheckInterval('set')
-// MediaDevice.prototype.getMediaDeviceList()
