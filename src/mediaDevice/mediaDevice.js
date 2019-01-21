@@ -200,16 +200,17 @@ class MediaDevice {
           console.log('Some other kind of source/device plug in: ', device)
       }
       index = MediaDevice.indexOfArray(deviceArray, device)
-      if (index >= 0) {
+      if (index > 0) {
         deviceArray[index].state = 'available'
-        console.log('change device state to available')
       } else {
         let obj = MediaDevice.objDefineProperty(device)
         if (device.kind === 'videoinput') {
-          cameraScanList.push(obj)
+          let scanDeviceIndex = MediaDevice.indexOfArray(cameraScanList, device)
+          if (scanDeviceIndex < 0) {
+            cameraScanList.push(obj)
+          }
         }
         deviceArray.push(obj)
-        // deviceArray[deviceArray.length - 1].state = 'available'
         console.log(device.label, ' has been plug in ', '(' + device.kind + ')')
       }
     })
@@ -250,7 +251,6 @@ class MediaDevice {
    */
   static getMediaDeviceFromStorage () {
     let devices = JSON.parse(localStorage.getItem('mediaDevice'))
-    console.warn(devices)
     let mediaDeviceList = []
     if (devices) {
       if (audioInputDevices && audioInputDevices.length > 0) {
@@ -564,7 +564,7 @@ MediaDevice.prototype.setDeviceState = function (isApply, data) {
     deviceArray.forEach(function (device) {
       let index = MediaDevice.indexOfArray(usingDevices, device)
       if (device.deviceId === nowUseDevice.deviceId && device.label === nowUseDevice.label) {
-        if (index >= 0) {
+        if (index > 0) {
           usingDevices[index].state = 'apply'
         } else {
           device.state = 'apply'
@@ -572,7 +572,7 @@ MediaDevice.prototype.setDeviceState = function (isApply, data) {
         }
         console.warn(device.label + '(' + device.deviceId + ') has been apply! (' + device.kind + ')')
       } else {
-        if (index >= 0) {
+        if (index > 0) {
           usingDevices.splice(index, 1)
         }
         device.state = 'available'
