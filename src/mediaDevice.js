@@ -160,15 +160,15 @@ MediaDevice.prototype.updateDeviceInfo = function(deviceInfos, type){
   function setDeviceStatus (deviceInfoList, storageInfoList) {
     for (var i = 0; i < storageInfoList.length; i++) {
       for(var j = 0; j < deviceInfoList.length; j++){
-        if(storageInfoList[i].deviceId === deviceInfoList[j].deviceId){
+        if(storageInfoList[i].label === deviceInfoList[j].label){
           if(storageInfoList[i].status === 'unavailable'){
             log.info('set device unavailable to available!')
             storageInfoList[i].status = 'available'
           }
           break
         }
-        if(storageInfoList[i].deviceId !== deviceInfoList[j].deviceId && j === deviceInfoList.length - 1 && storageInfoList[i].status !== 'unavailable'){
-          log.warn(storageInfoList[i].deviceId + "   device is unavailable")
+        if(storageInfoList[i].label !== deviceInfoList[j].label && j === deviceInfoList.length - 1 && storageInfoList[i].status !== 'unavailable'){
+          log.warn(storageInfoList[i].label + "   device is unavailable")
           storageInfoList[i].status = 'unavailable'
         }
       }
@@ -183,10 +183,10 @@ MediaDevice.prototype.updateDeviceInfo = function(deviceInfos, type){
   function addInsertDevice(deviceInfoList, storageInfoList){
     for(var i = 0; i < deviceInfoList.length; i++){
       for(var j = 0; j < storageInfoList.length; j++){
-        if(deviceInfoList[i].deviceId === storageInfoList[j].deviceId){
+        if(deviceInfoList[i].label === storageInfoList[j].label){
           break
         }
-        if( deviceInfoList[i].deviceId !== storageInfoList[j].deviceId && j === storageInfoList.length - 1){
+        if( deviceInfoList[i].label !== storageInfoList[j].label && j === storageInfoList.length - 1){
           log.warn("new device has been insert!")
           storageInfoList.push(deviceInfoList[i])
         }
@@ -235,7 +235,7 @@ MediaDevice.prototype.setDeviceCapability = async function () {
         continue
       }
 
-      log.warn("Current scan device：", mediaDevice.cameras[j].deviceId)
+      log.warn("Current scan device：", mediaDevice.cameras[j].label)
       var deviceId = mediaDevice.cameras[j].deviceId
       var capability = mediaDevice.cameras[j].capability
       var localStream = null
