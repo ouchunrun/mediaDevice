@@ -162,7 +162,7 @@ MediaDevice.prototype.updateDeviceInfo = function(deviceInfos, type){
       for(var j = 0; j < deviceInfoList.length; j++){
         if(storageInfoList[i].deviceId === deviceInfoList[j].deviceId){
           if(storageInfoList[i].status === 'unavailable'){
-            log.log('set device unavailable to available!')
+            log.info('set device unavailable to available!')
             storageInfoList[i].status = 'available'
           }
           break
@@ -214,7 +214,7 @@ MediaDevice.prototype.updateDeviceInfo = function(deviceInfos, type){
   // 获取到设备列表，且localStorage中有设备存储信息
   setDeviceStatus(deviceInfoList, storageInfoList)
   addInsertDevice(deviceInfoList, storageInfoList)
-  log.log('update modified device info into localStorage!')
+  log.info('update modified device info into localStorage!')
   localStorage.setItem('mediaDevice',  JSON.stringify(localStorageDeviceInfo, null, '    '))
 }
 
@@ -231,7 +231,7 @@ MediaDevice.prototype.setDeviceCapability = async function () {
     for(var j = 0; j < mediaDevice.cameras.length; j++){
       // 当前循环设备之前已经有分辨率扫描的记录，不重新扫描
       if(mediaDevice.cameras[j].capability && mediaDevice.cameras[j].capability.length > 0){
-        log.log("this device has already get resolution before!")
+        log.info("this device has already get resolution before!")
         continue
       }
 
@@ -270,7 +270,7 @@ MediaDevice.prototype.setDeviceCapability = async function () {
         if (localStream && localStream.getVideoTracks().length > 0) {
           var videoTrack = localStream.getVideoTracks()[0]
           await videoTrack.applyConstraints(constraints).then(function () {
-            log.log('applyConstraints success')
+            log.info('applyConstraints success')
             getNewStreamSuccess(null)
           }).catch(function (error) {
             log.warn('applyConstraints error: ', error.name)
@@ -278,7 +278,7 @@ MediaDevice.prototype.setDeviceCapability = async function () {
           })
         }else {
           await navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
-            log.log("getUserMedia success!")
+            log.info("getUserMedia success!")
             localStream = stream
             getNewStreamSuccess()
           }).catch(function (error) {
@@ -301,13 +301,13 @@ MediaDevice.prototype.checkAvailableDev = function () {
   var This = this
 
   This.enumDevices(function(deviceInfo){
-    // log.log("get device info success: \n", JSON.stringify(deviceInfo))
+    // log.info("get device info success: \n", JSON.stringify(deviceInfo))
     function setLabel (devices, type) {
       for (var key = 0; key < devices.length; key++) {
         if (!devices[key].label) {
           devices[key].label = type + key
         }
-        log.log(type + " " +devices[key].label)
+        log.info(type + " " +devices[key].label)
       }
       return devices
     }
@@ -429,7 +429,7 @@ MediaDevice.prototype.getSuitableResolution = function (expectRes) {
       // 返回设备支持的最大的、width比期望值小的分辨率
       for(var j = 0; j < capability.length; j++){
         if(capability[j].width < expectRes.width){
-          log.log('Returns the maximum resolution supported by the device with a smaller width than expected')
+          log.info('Returns the maximum resolution supported by the device with a smaller width than expected')
           matchRes = capability[j]
           break
         }

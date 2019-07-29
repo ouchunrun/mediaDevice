@@ -58,7 +58,7 @@
   /*Log Debug Start*/
   var log = { };
   log.debug = window.debug("ConfMQ:DEBUG");
-  log.log   = window.debug("ConfMQ:LOG");
+  log.info   = window.debug("ConfMQ:LOG");
   log.info  = window.debug("ConfMQ:INFO");
   log.warn  = window.debug("ConfMQ:WARN");
   log.error = window.debug("ConfMQ:ERROR");
@@ -75,14 +75,14 @@
     var audioInputList = []
     var videoInputList = []
     mediaDevice.enumDevices(deviceInfo => {
-      log.log('enumDevices' + JSON.stringify(deviceInfo))
+      log.info('enumDevices' + JSON.stringify(deviceInfo))
       if (deviceInfo.microphones) {
         for (var i = 0; i < deviceInfo.microphones.length; i++) {
           if (!deviceInfo.microphones[i].label) {
             deviceInfo.microphones[i].label = 'microphone' + i
           }
           audioInputList.push(' <option value="' + deviceInfo.microphones[i].deviceId + '">' + deviceInfo.microphones[i].label + '</option>')
-          log.log('microphone: ' + deviceInfo.microphones[i].label)
+          log.info('microphone: ' + deviceInfo.microphones[i].label)
         }
       }
 
@@ -92,7 +92,7 @@
             deviceInfo.cameras[j].label = 'camera' + j
           }
           videoInputList.push('<option value="' + deviceInfo.cameras[j].deviceId + '">' + deviceInfo.cameras[j].label + '</option>')
-          log.log('camera: ' + deviceInfo.cameras[j].label)
+          log.info('camera: ' + deviceInfo.cameras[j].label)
         }
       }
 

@@ -646,7 +646,7 @@ module.exports = function setup(env) {
             // turn the `arguments` into a proper Array
             var args = new Array(arguments.length);
             for (var i = 0; i < args.length; i++) {
-                args[i] = JSON.stringify(arguments[i]);
+                args[i] = arguments[i];
             }
             args[0] = createDebug.coerce(args[0]);
 
