@@ -162,13 +162,13 @@ MediaDevice.prototype.updateDeviceInfo = function(deviceInfos, type){
       for(var j = 0; j < deviceInfoList.length; j++){
         if(storageInfoList[i].deviceId === deviceInfoList[j].deviceId){
           if(storageInfoList[i].status === 'unavailable'){
-            console.log('set device unavailable to available!')
+            log.log('set device unavailable to available!')
             storageInfoList[i].status = 'available'
           }
           break
         }
         if(storageInfoList[i].deviceId !== deviceInfoList[j].deviceId && j === deviceInfoList.length - 1 && storageInfoList[i].status !== 'unavailable'){
-          console.warn(storageInfoList[i].deviceId + "   device is unavailable")
+          log.warn(storageInfoList[i].deviceId + "   device is unavailable")
           storageInfoList[i].status = 'unavailable'
         }
       }
@@ -187,7 +187,7 @@ MediaDevice.prototype.updateDeviceInfo = function(deviceInfos, type){
           break
         }
         if( deviceInfoList[i].deviceId !== storageInfoList[j].deviceId && j === storageInfoList.length - 1){
-          console.warn("new device has been insert!")
+          log.warn("new device has been insert!")
           storageInfoList.push(deviceInfoList[i])
         }
       }
@@ -196,14 +196,14 @@ MediaDevice.prototype.updateDeviceInfo = function(deviceInfos, type){
 
   // 本地存储没有任何值，直接设置获取的设备列表到localStorage中
   if(deviceInfoList.length && !storageInfoList.length){
-    console.warn("set new device info list")
+    log.warn("set new device info list")
     localStorage.setItem('mediaDevice',  JSON.stringify(deviceInfos, null, '    '))
     return
   }
 
   // 未获取当任何有效的设备列表，localStorage保存的设备全部设置为不可用
   if(!deviceInfoList.length && storageInfoList.length){
-    console.warn('set all device to unavailable');
+    log.warn('set all device to unavailable');
     for (var i = 0; i < storageInfoList.length; i++){
       storageInfoList[i].status = 'unavailable'
     }
@@ -214,7 +214,7 @@ MediaDevice.prototype.updateDeviceInfo = function(deviceInfos, type){
   // 获取到设备列表，且localStorage中有设备存储信息
   setDeviceStatus(deviceInfoList, storageInfoList)
   addInsertDevice(deviceInfoList, storageInfoList)
-  console.log('update modified device info into localStorage!')
+  log.log('update modified device info into localStorage!')
   localStorage.setItem('mediaDevice',  JSON.stringify(localStorageDeviceInfo, null, '    '))
 }
 
@@ -231,11 +231,11 @@ MediaDevice.prototype.setDeviceCapability = async function () {
     for(var j = 0; j < mediaDevice.cameras.length; j++){
       // 当前循环设备之前已经有分辨率扫描的记录，不重新扫描
       if(mediaDevice.cameras[j].capability && mediaDevice.cameras[j].capability.length > 0){
-        console.log("this device has already get resolution before!")
+        log.log("this device has already get resolution before!")
         continue
       }
 
-      console.warn("Current scan device：", mediaDevice.cameras[j].deviceId)
+      log.warn("Current scan device：", mediaDevice.cameras[j].deviceId)
       var deviceId = mediaDevice.cameras[j].deviceId
       var capability = mediaDevice.cameras[j].capability
       var localStream = null
@@ -247,7 +247,7 @@ MediaDevice.prototype.setDeviceCapability = async function () {
         })
       }
       function getNewStreamFailed () {
-        console.warn('device has not support this resolution: ',
+        log.warn('device has not support this resolution: ',
           JSON.stringify({
             width: quickScanList[i].width,
             height: quickScanList[i].height,
@@ -270,19 +270,19 @@ MediaDevice.prototype.setDeviceCapability = async function () {
         if (localStream && localStream.getVideoTracks().length > 0) {
           var videoTrack = localStream.getVideoTracks()[0]
           await videoTrack.applyConstraints(constraints).then(function () {
-            console.log('applyConstraints success')
+            log.log('applyConstraints success')
             getNewStreamSuccess(null)
           }).catch(function (error) {
-            console.warn('applyConstraints error: ', error.name)
+            log.warn('applyConstraints error: ', error.name)
             getNewStreamFailed ()
           })
         }else {
           await navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
-            console.log("getUserMedia success!")
+            log.log("getUserMedia success!")
             localStream = stream
             getNewStreamSuccess()
           }).catch(function (error) {
-            console.warn(error.name)
+            log.warn(error.name)
             getNewStreamFailed()
           })
         }
@@ -290,7 +290,7 @@ MediaDevice.prototype.setDeviceCapability = async function () {
     }
     localStorage.setItem('mediaDevice', JSON.stringify(mediaDevice, null, '    '))
   }else {
-    console.warn('no cameras need to resolution scan!')
+    log.warn('no cameras need to resolution scan!')
   }
 }
 
@@ -301,13 +301,13 @@ MediaDevice.prototype.checkAvailableDev = function () {
   var This = this
 
   This.enumDevices(function(deviceInfo){
-    // console.log("get device info success: \n", JSON.stringify(deviceInfo))
+    // log.log("get device info success: \n", JSON.stringify(deviceInfo))
     function setLabel (devices, type) {
       for (var key = 0; key < devices.length; key++) {
         if (!devices[key].label) {
           devices[key].label = type + key
         }
-        console.log(type + " " +devices[key].label)
+        log.log(type + " " +devices[key].label)
       }
       return devices
     }
@@ -326,14 +326,12 @@ MediaDevice.prototype.checkAvailableDev = function () {
       This.updateDeviceInfo(deviceInfo, "cameras")
       This.updateDeviceInfo(deviceInfo, "microphones")
       This.updateDeviceInfo(deviceInfo, "speakers")
-
-      This.setDeviceCapability()
     }else {
-      console.warn("deviceInfo is null")
+      log.warn("deviceInfo is null")
     }
 
   }, function (error) {
-    console.error('enum device error: ' + error.toString())
+    log.error('enum device error: ' + error.toString())
   })
 }
 
@@ -365,7 +363,7 @@ MediaDevice.prototype.setDeviceCheckInterval = function (switchOn) {
  */
 MediaDevice.prototype.getSuitableResolution = function (expectRes) {
   if(!expectRes.deviceId || !expectRes.width || !expectRes.height || !expectRes.frameRate){
-    console.warn('Invalid parameter');
+    log.warn('Invalid parameter');
     return
   }
 
@@ -379,7 +377,7 @@ MediaDevice.prototype.getSuitableResolution = function (expectRes) {
     for(var i = 0; i < mediaDevice.cameras.length; i++){
       if(mediaDevice.cameras[i].deviceId === expectRes.deviceId){
         capability = mediaDevice.cameras[i].capability
-        console.warn("capability: ", capability)
+        log.warn("capability: ", capability)
         break
       }
     }
@@ -391,7 +389,7 @@ MediaDevice.prototype.getSuitableResolution = function (expectRes) {
           sameWidthList.push(capability[j])
         }
       }
-      console.warn("sameWidthList: ", sameWidthList)
+      log.warn("sameWidthList: ", sameWidthList)
     }
 
     // 获取最合适的分辨率
@@ -399,7 +397,7 @@ MediaDevice.prototype.getSuitableResolution = function (expectRes) {
       for(var k = 0; k < sameWidthList.length; k++){
         // 返回width height frameRate 都相同的分辨率
         if(sameWidthList[k].width === expectRes.width && sameWidthList[k].height === expectRes.height && sameWidthList[k].frameRate === expectRes.frameRate){
-          console.warn('Returns the resolution of width height frameRate', sameWidthList[k])
+          log.warn('Returns the resolution of width height frameRate', sameWidthList[k])
           matchRes = sameWidthList[k]
           break
         }
@@ -409,7 +407,7 @@ MediaDevice.prototype.getSuitableResolution = function (expectRes) {
         for(var k = 0; k < sameWidthList.length; k++){
           // 返回width height相同， frameRate 小于期望值的的分辨率
           if(sameWidthList[k].width === expectRes.width && sameWidthList[k].height === expectRes.height && sameWidthList[k].frameRate < expectRes.frameRate){
-            console.warn('Returns the resolution where the width height is the same and the frameRate is less than the expected value. ', sameWidthList[k])
+            log.warn('Returns the resolution where the width height is the same and the frameRate is less than the expected value. ', sameWidthList[k])
             matchRes = sameWidthList[k]
             break
           }
@@ -420,18 +418,18 @@ MediaDevice.prototype.getSuitableResolution = function (expectRes) {
         for(var k = 0; k < sameWidthList.length; k++){
           // 返回width frameRate 相同， height 小于期望值的的分辨率
           if(sameWidthList[k].width === expectRes.width && sameWidthList[k].height < expectRes.height && sameWidthList[k].frameRate === expectRes.frameRate){
-            console.warn('Returns the resolution where the width height is the same and the frameRate is less than the expected value. ', sameWidthList[k])
+            log.warn('Returns the resolution where the width height is the same and the frameRate is less than the expected value. ', sameWidthList[k])
             matchRes = sameWidthList[k]
             break
           }
         }
       }
     }else {
-      console.warn("no same with resolution exist, get other resolution;")
+      log.warn("no same with resolution exist, get other resolution;")
       // 返回设备支持的最大的、width比期望值小的分辨率
       for(var j = 0; j < capability.length; j++){
         if(capability[j].width < expectRes.width){
-          console.log('Returns the maximum resolution supported by the device with a smaller width than expected')
+          log.log('Returns the maximum resolution supported by the device with a smaller width than expected')
           matchRes = capability[j]
           break
         }
